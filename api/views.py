@@ -92,6 +92,7 @@ def messages(request, session_id):
         try:
             data = json.loads(request.body)
             message_text = data['text']
+            tip_of_tongue = data.get('tipOfTongue', False)  # Retrieve the flag
             session = Session.objects.get(id=session_id)
         except (json.JSONDecodeError, KeyError, Session.DoesNotExist) as e:
             return JsonResponse({'error': 'Invalid request or session not found'}, status=400)
@@ -110,8 +111,8 @@ def messages(request, session_id):
             else:
                 conversation.append(AIMessage(content=msg.text))
 
-        # Process message with LangChain, passing the conversation history
-        response_text = process_message(conversation)
+        # Process the message with LangChain, passing the conversation history and the flag
+        response_text = process_message(conversation, tip_of_tongue=tip_of_tongue)
 
         # Save system response
         assistant_message = Message.objects.create(session=session, text=response_text, from_user=False)
@@ -123,6 +124,7 @@ def messages(request, session_id):
         return JsonResponse({'messages': list(messages)}, status=200)
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])  # Require authentication

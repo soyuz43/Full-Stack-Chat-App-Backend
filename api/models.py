@@ -5,7 +5,7 @@ from django.conf import settings
 
 class Session(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,  # Best practice: refer to the user model via settings
+        settings.AUTH_USER_MODEL,  
         on_delete=models.CASCADE,  # Ensures user's sessions are deleted with the user
         related_name='sessions'
     )
