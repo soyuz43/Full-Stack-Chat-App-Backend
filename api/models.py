@@ -10,6 +10,8 @@ class Session(models.Model):
         related_name='sessions'
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    workflow = models.JSONField(default=dict)  # Store node and edge data as JSON
+
 
     def __str__(self):
         return f"Session {self.id} for user {self.user.username} started at {self.created_at}"
@@ -23,3 +25,4 @@ class Message(models.Model):
 
     def __str__(self):
         return f"Message from {'User' if self.from_user else 'System'} at {self.timestamp}: {self.text[:50]}"
+

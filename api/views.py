@@ -135,3 +135,32 @@ def delete_session(request, session_id):
         return JsonResponse({'message': 'Session deleted successfully'}, status=204)
     except Session.DoesNotExist:
         return JsonResponse({'error': 'Session not found'}, status=404)
+    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_workflow(request, session_id):
+    """
+    Save the current workflow (nodes and edges) to the specified session.
+    """
+    try:
+        session = Session.objects.get(id=session_id, user=request.user)
+        workflow_data = request.data  # Expecting 'nodes' and 'edges' in JSON
+        session.workflow = workflow_data
+        session.save()
+        return JsonResponse({'message': 'Workflow saved successfully'}, status=200)
+    except Session.DoesNotExist:
+        return JsonResponse({'error': 'Session not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_workflow(request, session_id):
+    try:
+        session = Session.objects.get(id=session_id, user=request.user)
+        workflow = session.workflow if session.workflow else {"nodes": [], "edges": []}
+        return JsonResponse({'workflow': workflow}, status=200)
+    except Session.DoesNotExist:
+        return JsonResponse({'error': 'Session not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
