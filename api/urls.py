@@ -13,4 +13,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('register/', views.register_view, name='register'),
+    # Workflow-related endpoints
+    path('save-workflow/<int:session_id>/', views.save_workflow, name='save_workflow'),
+    path('get-workflow/<int:session_id>/', views.get_workflow, name='get_workflow'),
 ]
