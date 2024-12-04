@@ -139,12 +139,20 @@ def delete_session(request, session_id):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def save_workflow(request, session_id):
-    """
-    Save the current workflow (nodes and edges) to the specified session.
-    """
     try:
         session = Session.objects.get(id=session_id, user=request.user)
-        workflow_data = request.data  # Expecting 'nodes' and 'edges' in JSON
+        workflow_data = request.data  # Expecting JSON with nodes and edges
+        if not workflow_data:
+            return JsonResponse({'error': 'Invalid workflow data'}, status=400)
+
+        # Validate and process nodes
+        nodes = workflow_data.get('nodes', [])
+        for node in nodes:
+            # Ensure instructions exist for custom nodes
+            if node.get('type') == 'custom':
+                node['data']['instructions'] = node['data'].get('instructions', '')
+
+        # Save workflow
         session.workflow = workflow_data
         session.save()
         return JsonResponse({'message': 'Workflow saved successfully'}, status=200)
@@ -158,7 +166,14 @@ def save_workflow(request, session_id):
 def get_workflow(request, session_id):
     try:
         session = Session.objects.get(id=session_id, user=request.user)
-        workflow = session.workflow if session.workflow else {"nodes": [], "edges": []}
+        workflow = session.workflow
+
+        # Ensuring instructions are included for custom nodes
+        nodes = workflow.get('nodes', [])
+        for node in nodes:
+            if node.get('type') == 'custom':
+                node['data']['instructions'] = node['data'].get('instructions', '')
+
         return JsonResponse({'workflow': workflow}, status=200)
     except Session.DoesNotExist:
         return JsonResponse({'error': 'Session not found'}, status=404)
